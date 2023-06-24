@@ -94,18 +94,18 @@ namespace IngameScript
                 }
             }
 
-            public float Angle { get {
+            public double Angle { get {
                     return ActiveHinge.Angle;
                 }
             }
 
-            public float TargetVelocityRad
+            public double TargetVelocityRad
             {
                 set 
                 {
                     ActiveHinge.LowerLimitDeg = -87;
                     ActiveHinge.UpperLimitDeg = 87;
-                    ActiveHinge.TargetVelocityRad = value;
+                    ActiveHinge.TargetVelocityRad = (float) value;
                 }
                 get
                 {
@@ -124,13 +124,13 @@ namespace IngameScript
                 }
             }
 
-            public float ThrustOverride
+            public double ThrustOverride
             {
                 set
                 {
                     thrusters.ForEach((IMyThrust thruster) =>
                     {
-                        thruster.ThrustOverride = Math.Max(value, 1);
+                        thruster.ThrustOverride = (float) Math.Max(value, 1);
                     });
                 }
             }

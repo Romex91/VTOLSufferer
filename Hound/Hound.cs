@@ -36,9 +36,9 @@ namespace IngameScript
         
         DoubleMergeBlocksConnectionConroller doubleMergeBlocksConnectionConroller;
 
-        float elevationSpeed;
-        float elevationSpeedPrev;
-        float elevationSpeedDelta;
+        double elevationSpeed;
+        double elevationSpeedPrev;
+        double elevationSpeedDelta;
 
         DateTime prevMeasurementTime = DateTime.Now;
 
@@ -62,17 +62,17 @@ namespace IngameScript
 
         }
 
-        public void controlEngines(float pitch, float roll, float elevationSpeed, float elevationSpeedDelta, Vector3D linearVelocity)
+        public void controlEngines(double pitch, double roll, double elevationSpeed, double elevationSpeedDelta, Vector3D linearVelocity)
         {
             var worldMatrix = controller.WorldMatrix;
 
-            float vericalPitchFactor = (float)(Math.Sin(pitch / 180 * Math.PI));
-            float horizontalPitchFactor = (float)(Math.Cos(pitch / 180 * Math.PI));
+            double vericalPitchFactor = (double)(Math.Sin(pitch / 180 * Math.PI));
+            double horizontalPitchFactor = (double)(Math.Cos(pitch / 180 * Math.PI));
             display.log("f:" + vericalPitchFactor.ToString() + " e :" + elevationSpeed + "\n");
 
-            float desiredElevationSpeedDelta = AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.Y + desiredVelocity.Z * vericalPitchFactor, new List<AutopilotDerivativesWaterfall.Derivative>
+            double desiredElevationSpeedDelta = AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.Y + desiredVelocity.Z * vericalPitchFactor, new List<AutopilotDerivativesWaterfall.Derivative>
             {
-                new AutopilotDerivativesWaterfall.Derivative { name = "velocity Z", maxValue = 50, currentValue = (float)elevationSpeed, sensitivityMultiplier = 1f },
+                new AutopilotDerivativesWaterfall.Derivative { name = "velocity Z", maxValue = 50, currentValue = (double)elevationSpeed, sensitivityMultiplier = 1f },
             }) * 10;
 
             display.log("d :" + desiredElevationSpeedDelta.ToString("0.0") + "\n");
@@ -80,7 +80,7 @@ namespace IngameScript
 
             double G = controller.GetNaturalGravity().Length();
             int functionalThrustersCount = thrusters.Count((IMyThrust thruster) => { return thruster.IsFunctional; });
-            float forcePerThruster = (float)(controller.CalculateShipMass().TotalMass * (G + desiredElevationSpeedDelta) / functionalThrustersCount);
+            double forcePerThruster = (double)(controller.CalculateShipMass().TotalMass * (G + desiredElevationSpeedDelta) / functionalThrustersCount);
 
             forcePerThruster = thrustStabilization.adjustValue(forcePerThruster, desiredElevationSpeedDelta, elevationSpeedDelta, this);
 
@@ -95,16 +95,16 @@ namespace IngameScript
                 var directionLocal = Vector3D.TransformNormal(direction, MatrixD.Transpose(worldMatrix));
                 
                 var orientation = directionLocal.X > 0.8 ? 1 : -1;
-                float engineToGroundDegrees = (float) (engine.Angle * orientation / Math.PI * 180 - pitch);
+                double engineToGroundDegrees = (double) (engine.Angle * orientation / Math.PI * 180 - pitch);
 
-                float localThrustValue = (float)((forcePerThruster) / Math.Cos(engineToGroundDegrees / 180 * Math.PI) / Math.Cos(roll/180 * Math.PI));
+                double localThrustValue = (double)((forcePerThruster) / Math.Cos(engineToGroundDegrees / 180 * Math.PI) / Math.Cos(roll/180 * Math.PI));
                 engine.ThrustOverride = localThrustValue;
                 display.log("Thrust :" + localThrustValue.ToString("0.0") + "\n");
                 //display.log("engineToGroundDegrees :" + engineToGroundDegrees.ToString("0.0") + "\n");
 
                 engine.TargetVelocityRad = orientation * AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.Z * horizontalPitchFactor, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
-                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity Y", maxValue = 125, currentValue = (float)linearVelocity.Z, sensitivityMultiplier = 1f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity Y", maxValue = 125, currentValue = (double)linearVelocity.Z, sensitivityMultiplier = 1f },
                    new AutopilotDerivativesWaterfall.Derivative { name = "engine-to-ground Angle", maxValue = 50, currentValue = engineToGroundDegrees, sensitivityMultiplier = 5f },
                 }) * 5;
 
@@ -155,24 +155,24 @@ namespace IngameScript
             var localUp = Vector3D.TransformNormal(Vector3D.Normalize(position), MatrixD.Transpose(matrix));
             Vector3D linearVelocity = Vector3D.TransformNormal(controller.GetShipVelocities().LinearVelocity, MatrixD.Transpose(matrix));
             Vector3D angularVelocity = Vector3D.TransformNormal(controller.GetShipVelocities().AngularVelocity, MatrixD.Transpose(matrix));
-            float roll = (float)(-Math.Atan2(localUp.X, localUp.Y) * 180 / Math.PI);
+            double roll = (double)(-Math.Atan2(localUp.X, localUp.Y) * 180 / Math.PI);
 
-            float pitch = (float)(Math.Atan2(localUp.Z, localUp.Y) * 180 / Math.PI);
+            double pitch = (double)(Math.Atan2(localUp.Z, localUp.Y) * 180 / Math.PI);
 
             elevationSpeedPrev = elevationSpeed;
-            elevationSpeed = (float)Vector3D.Dot(localUp, linearVelocity);
+            elevationSpeed = (double)Vector3D.Dot(localUp, linearVelocity);
 
             DateTime now = DateTime.Now;
-            elevationSpeedDelta = (float)((elevationSpeed - elevationSpeedPrev)/(now - prevMeasurementTime).TotalSeconds);
+            elevationSpeedDelta = (double)((elevationSpeed - elevationSpeedPrev)/(now - prevMeasurementTime).TotalSeconds);
             prevMeasurementTime = now;
 
             UpdateDesiredVelocity(linearVelocity);
 
-            float gyroRoll = 5 * AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.X, new List<AutopilotDerivativesWaterfall.Derivative>
+            double gyroRoll = 5 * AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.X, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
-                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity X", maxValue = 100, currentValue = (float)linearVelocity.X },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity X", maxValue = 100, currentValue = (double)linearVelocity.X },
                    new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 40, currentValue = roll, sensitivityMultiplier = 5f },
-                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1, currentValue = (float) - angularVelocity.Z, sensitivityMultiplier = 2f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1, currentValue = (double) - angularVelocity.Z, sensitivityMultiplier = 2f },
                 });
 
 
@@ -181,7 +181,7 @@ namespace IngameScript
                 gyro.GyroOverride = true;
                 gyro.Yaw = controller.RotationIndicator.Y;
                 gyro.Pitch = controller.RotationIndicator.X;
-                gyro.Roll = gyroRoll;
+                gyro.Roll = (float) gyroRoll;
             }
 
             controlEngines(pitch, roll, elevationSpeed, elevationSpeedDelta, linearVelocity);

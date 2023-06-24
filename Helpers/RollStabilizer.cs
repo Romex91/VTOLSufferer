@@ -24,13 +24,13 @@ namespace IngameScript
     {
         public class LinearStabilization
         {
-            float stabilizationFactor;
-            float stabilizationSpeed;
-            float maxAdjustment;
+            double stabilizationFactor;
+            double stabilizationSpeed;
+            double maxAdjustment;
 
             Display display;
 
-            public LinearStabilization(float stabilizationSpeed, float initialStabilizationFactor, float maxAdjustment, Display display = null)
+            public LinearStabilization(double stabilizationSpeed, double initialStabilizationFactor, double maxAdjustment, Display display = null)
             {
                 this.stabilizationSpeed = stabilizationSpeed;
                 this.stabilizationFactor = initialStabilizationFactor;
@@ -46,7 +46,7 @@ namespace IngameScript
                 }
             }
 
-            public float adjustValue(float valueToAdjust, float targetValue, float actualValue, MyGridProgram program)
+            public double adjustValue(double valueToAdjust, double targetValue, double actualValue, MyGridProgram program)
             {
                 if (targetValue < actualValue)
                 {
@@ -75,22 +75,22 @@ namespace IngameScript
             public class Derivative
             {
                 public string name;
-                public float maxValue;
-                public float currentValue;
-                public float sensitivityMultiplier = 1f;
+                public double maxValue;
+                public double currentValue;
+                public double sensitivityMultiplier = 1f;
             }
 
 
             // https://www.desmos.com/calculator/udg7ema3fd
             // 
-            public static float upsideDownU(float maxValue, float power)
+            public static double upsideDownU(double maxValue, double power)
             {
-                return -maxValue * ( (float) Math.Pow(Math.Abs(maxValue), power) ) + maxValue;
+                return -maxValue * ( (double) Math.Pow(Math.Abs(maxValue), power) ) + maxValue;
             }
 
-            public static float normalize(float value, float maxValue, Display display)
+            public static double normalize(double value, double maxValue, Display display)
             {
-                float normalized = value / maxValue;
+                double normalized = value / maxValue;
                 if (normalized > 1 || normalized < -1)
                 {
                     display.log("value shouldn't exceed maxValue");
@@ -98,9 +98,9 @@ namespace IngameScript
                 return Math.Max(-1, Math.Min(1, normalized)); ;
             }
 
-            public static float cumputeLastDerivative(float targetValue, List<Derivative> derivatives, Display display = null)
+            public static double cumputeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
             {
-                float normalizedTargetValue = targetValue / derivatives[0].maxValue;
+                double normalizedTargetValue = targetValue / derivatives[0].maxValue;
                 normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
                 if (derivatives[0].sensitivityMultiplier != 1f)
@@ -112,7 +112,7 @@ namespace IngameScript
                 {
                     if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].sensitivityMultiplier.ToString("0.000")}\n");
 
-                    float sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
+                    double sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
                     normalizedTargetValue *= sensitivityMultiplier;
                     normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
@@ -126,9 +126,9 @@ namespace IngameScript
                 return normalizedTargetValue;
             }
 
-            //public static float cumputeLastDerivative(float targetValue, List<Derivative> derivatives, Display display = null)
+            //public static double cumputeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
             //{
-            //    float normalizedTargetValue = targetValue / derivatives[0].maxValue;
+            //    double normalizedTargetValue = targetValue / derivatives[0].maxValue;
             //    normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
             //    if (derivatives[0].sensitivityMultiplier != 1f)
@@ -140,7 +140,7 @@ namespace IngameScript
             //    {
             //        if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].sensitivityMultiplier.ToString("0.000")}\n");
 
-            //        float sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
+            //        double sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
             //        normalizedTargetValue *= sensitivityMultiplier;
             //        normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
@@ -175,13 +175,13 @@ namespace IngameScript
                 var localUp = Vector3D.TransformNormal(Vector3D.Normalize(position), MatrixD.Transpose(matrix));
                 Vector3D linearVelocity = Vector3D.TransformNormal(controller.GetShipVelocities().LinearVelocity, MatrixD.Transpose(matrix));
                 Vector3D angularVelocity = Vector3D.TransformNormal(controller.GetShipVelocities().AngularVelocity, MatrixD.Transpose(matrix));
-                float roll = (float) (-Math.Atan2(localUp.X, localUp.Y) * 180 / Math.PI);
+                double roll = (double) (-Math.Atan2(localUp.X, localUp.Y) * 180 / Math.PI);
 
-                float gyroRoll = AutopilotDerivativesWaterfall.cumputeLastDerivative(controller.MoveIndicator.X * 100, new List<AutopilotDerivativesWaterfall.Derivative>
+                double gyroRoll = AutopilotDerivativesWaterfall.cumputeLastDerivative(controller.MoveIndicator.X * 100, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
-                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity", maxValue = 100, currentValue = (float)linearVelocity.X },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity", maxValue = 100, currentValue = (double)linearVelocity.X },
                    new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 5, currentValue = roll },
-                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1f, currentValue = (float) - angularVelocity.Z },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1f, currentValue = (double) - angularVelocity.Z },
                 }, display);
 
                 display.log("gyroRoll" + gyroRoll.ToString("0.00") + "\n");

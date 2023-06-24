@@ -26,9 +26,9 @@ namespace IngameScript
         IMyCockpit cockpit;
         List<IMyPistonBase> pistons = new List<IMyPistonBase>();
 
-        const float mouseSensitivity = 0.001f;
-        const float keyboardSensitivity = 0.02f;
-        const float relaxation = 0.01f;
+        const double mouseSensitivity = 0.001f;
+        const double keyboardSensitivity = 0.02f;
+        const double relaxation = 0.01f;
         public Program()
         {
             Runtime.UpdateFrequency = UpdateFrequency.Update1;
@@ -73,7 +73,7 @@ namespace IngameScript
                 } else
                 {
                     stringBuilder.Append($"WASD: {wasd.Y.ToString("0.00")} {piston.Velocity.ToString("0.00")}\n");
-                    piston.Velocity += (float)directionLocal.Z * wasd.Z * keyboardSensitivity;
+                    piston.Velocity += (double)directionLocal.Z * wasd.Z * keyboardSensitivity;
                 }
 
                 if (Math.Abs(piston.Velocity) <= relaxation)
