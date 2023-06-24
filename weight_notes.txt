@@ -1,0 +1,10 @@
+car = 57000 kg
+engine + car = 66000kg
+engine = 9000 kg
+engine + car + engine armor = 76700 kg
+engine armor = 76700 - 66000 kg = 10700 kg
+
+all engines armor = 10700 * 4 kg = 42800
+
+hound = 308 000
+hound - cargpo = 304 000
