@@ -9,7 +9,6 @@
     <Import_RootNamespace>IngameScript</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)HingedEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Display.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoubleMergeBlocksConnectionConroller.cs" />
