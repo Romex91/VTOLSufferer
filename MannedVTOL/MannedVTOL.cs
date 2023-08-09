@@ -69,6 +69,38 @@ namespace IngameScript
         }
 
 
+        public double computePitchForce_Suffering(
+            double targetVelocity,
+            double currentVelocity,
+            double currentAngle, /*roughly corresponds to currentAcceleration*/
+            double curentAngularVelocity,
+            Display display
+        )
+        {
+            if (targetVelocity > currentVelocity)
+            {
+                display.log("accelerating");
+                if (currentAngle > 5)
+                {
+                    return -0.1;
+                } else
+                {
+                    return +0.1;
+                }
+            } else
+            {
+                display.log("deccelerating");
+                if (currentAngle < -5)
+                {
+                    return 0.1;
+                }
+                else
+                {
+                    return -0.1;
+                }
+            }
+        }
+
         public double computePitchForce(
             double targetVelocity,
             double currentVelocity,
@@ -131,7 +163,7 @@ namespace IngameScript
 
             display.log($"\npitch {pitch.ToString("0.00")}\n");
 
-            double gyroPitch = computePitchForce(
+            double gyroPitch = computePitchForce_Suffering(
                 -controller.MoveIndicator.Z * 100,
                  -linearVelocity.Z,
                  pitch,
