@@ -77,50 +77,54 @@ namespace IngameScript
                 public string name;
                 public double maxValue;
                 public double currentValue;
-                public double sensitivityMultiplier = 1f;
+                public double stabilizatioThreshold = 1f;
             }
 
 
-            // https://www.desmos.com/calculator/udg7ema3fd
-            // 
-            public static double upsideDownU(double maxValue, double power)
+            // https://www.desmos.com/calculator/m27bzme75s
+            public static double applyStabilizationThreshold(double normalizedValue, double normalizedThreshold)
             {
-                return -maxValue * ( (double) Math.Pow(Math.Abs(maxValue), power) ) + maxValue;
+                if (normalizedThreshold <= 0 || normalizedThreshold >= 1) throw new Exception("power should be > 0"); ;
+                if (normalizedValue > normalizedThreshold) return 1;
+                if (normalizedValue >= -normalizedThreshold) return normalizedValue / normalizedThreshold;
+                return -1;
             }
+
 
             public static double normalize(double value, double maxValue, Display display)
             {
                 double normalized = value / maxValue;
                 if (normalized > 1 || normalized < -1)
                 {
-                    display.log("value shouldn't exceed maxValue");
+                    if (display != null)  display.log("normalizedValue shouldn't exceed maxValue");
                 }
                 return Math.Max(-1, Math.Min(1, normalized)); ;
             }
 
+            // If targetValue is distance then
+            // derivatives[0] is distance
+            // derivatives[1] (first derivative of distance) is velocity
+            // derivatives[2] is acceleration
             public static double cumputeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
             {
-                double normalizedTargetValue = targetValue / derivatives[0].maxValue;
+                double normalizedTargetValue = normalize(targetValue, derivatives[0].maxValue, display);
                 normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
-
-                if (derivatives[0].sensitivityMultiplier != 1f)
-                {
-                    throw new Exception("There is no point in setting sensitivityMultiplier for the first derivative. It only makes sense when set for 2nd or 3rd derivatives.");
-                }
 
                 for (int i = 0; i < derivatives.Count; i++)
                 {
-                    if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].sensitivityMultiplier.ToString("0.000")}\n");
+                    var normalizedCurrentValue = normalize(derivatives[i].currentValue, derivatives[i].maxValue, display);
+                    var normalizedStabilizationThreshold = normalize(derivatives[i].stabilizatioThreshold, derivatives[i].maxValue, display);
+                    // The bigger the difference between target and current values the larger the next
+                    // derivative should be to compensate for the difference.
+                    // Examples:
+                    // If target distance is 100KM and current distance is 1KM, we want the highest speed possible
+                    // If target velocity is -100m/s and current velocity is 100m/s we want the highest decceleration possible
+                    // If target distance is 100KM and current distance is 99.9KM it means that we're almost there and need to
+                    // lower the speed down in order to not fly too far. 
+                    double prevTargetValue = normalizedTargetValue;
+                    normalizedTargetValue = applyStabilizationThreshold((normalizedTargetValue - normalizedCurrentValue) / 2, normalizedStabilizationThreshold);
 
-                    double sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
-                    normalizedTargetValue *= sensitivityMultiplier;
-                    normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
-
-                    if (display != null)
-                        display.log($"d{(normalizedTargetValue * derivatives[i].maxValue).ToString("0.000")} a{derivatives[i].currentValue.ToString("0.000")} s{sensitivityMultiplier.ToString("0.000")} \n");
-
-                    normalizedTargetValue = normalizedTargetValue - derivatives[i].currentValue / derivatives[i].maxValue;
-                    normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
+                    if (display != null) display.log($"{derivatives[i].name}: targ{prevTargetValue.ToString("0.00")} cur{normalizedCurrentValue.ToString("0.00")} next{normalizedTargetValue.ToString("0.00")}\n");
                 }
 
                 return normalizedTargetValue;
@@ -131,21 +135,21 @@ namespace IngameScript
             //    double normalizedTargetValue = targetValue / derivatives[0].maxValue;
             //    normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
-            //    if (derivatives[0].sensitivityMultiplier != 1f)
+            //    if (derivatives[0].stabilizatioThreshold != 1f)
             //    {
-            //        throw new Exception("There is no point in setting sensitivityMultiplier for the first derivative. It only makes sense when set for 2nd or 3rd derivatives.");
+            //        throw new Exception("There is no point in setting stabilizatioThreshold for the first derivative. It only makes sense when set for 2nd or 3rd derivatives.");
             //    }
 
             //    for (int i = 0; i < derivatives.Count; i++)
             //    {
-            //        if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].sensitivityMultiplier.ToString("0.000")}\n");
+            //        if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].stabilizatioThreshold.ToString("0.000")}\n");
 
-            //        double sensitivityMultiplier = normalizedTargetValue == 0 ? derivatives[i].sensitivityMultiplier : (1 - derivatives[i].sensitivityMultiplier) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].sensitivityMultiplier;
-            //        normalizedTargetValue *= sensitivityMultiplier;
+            //        double stabilizatioThreshold = normalizedTargetValue == 0 ? derivatives[i].stabilizatioThreshold : (1 - derivatives[i].stabilizatioThreshold) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].stabilizatioThreshold;
+            //        normalizedTargetValue *= stabilizatioThreshold;
             //        normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
 
             //        if (display != null)
-            //            display.log($"d{(normalizedTargetValue * derivatives[i].maxValue).ToString("0.000")} a{derivatives[i].currentValue.ToString("0.000")} s{sensitivityMultiplier.ToString("0.000")} \n");
+            //            display.log($"d{(normalizedTargetValue * derivatives[i].maxValue).ToString("0.000")} a{derivatives[i].currentValue.ToString("0.000")} s{stabilizatioThreshold.ToString("0.000")} \n");
 
             //        normalizedTargetValue = normalizedTargetValue - derivatives[i].currentValue / derivatives[i].maxValue;
             //        normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));

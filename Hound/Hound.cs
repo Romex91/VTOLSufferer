@@ -72,7 +72,7 @@ namespace IngameScript
 
             double desiredElevationSpeedDelta = AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.Y + desiredVelocity.Z * vericalPitchFactor, new List<AutopilotDerivativesWaterfall.Derivative>
             {
-                new AutopilotDerivativesWaterfall.Derivative { name = "velocity Z", maxValue = 50, currentValue = (double)elevationSpeed, sensitivityMultiplier = 1f },
+                new AutopilotDerivativesWaterfall.Derivative { name = "velocity Z", maxValue = 50, currentValue = (double)elevationSpeed, stabilizatioThreshold = 1f },
             }) * 10;
 
             display.log("d :" + desiredElevationSpeedDelta.ToString("0.0") + "\n");
@@ -104,8 +104,8 @@ namespace IngameScript
 
                 engine.TargetVelocityRad = orientation * AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.Z * horizontalPitchFactor, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
-                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity Y", maxValue = 125, currentValue = (double)linearVelocity.Z, sensitivityMultiplier = 1f },
-                   new AutopilotDerivativesWaterfall.Derivative { name = "engine-to-ground Angle", maxValue = 50, currentValue = engineToGroundDegrees, sensitivityMultiplier = 5f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "velocity Y", maxValue = 125, currentValue = (double)linearVelocity.Z, stabilizatioThreshold = 1f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "engine-to-ground Angle", maxValue = 50, currentValue = engineToGroundDegrees, stabilizatioThreshold = 5f },
                 }) * 5;
 
                 // display.log($"{rotor.Name} {orientation.ToString("0.0")} angle: ${ (rotor.Angle * 180 / Math.PI).ToString("0.0") } ${ rotor.TargetVelocityRad.ToString("0.0") } \n");
@@ -171,8 +171,8 @@ namespace IngameScript
             double gyroRoll = 5 * AutopilotDerivativesWaterfall.cumputeLastDerivative(desiredVelocity.X, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
                    new AutopilotDerivativesWaterfall.Derivative { name = "velocity X", maxValue = 100, currentValue = (double)linearVelocity.X },
-                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 40, currentValue = roll, sensitivityMultiplier = 5f },
-                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1, currentValue = (double) - angularVelocity.Z, sensitivityMultiplier = 2f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 40, currentValue = roll, stabilizatioThreshold = 5f },
+                   new AutopilotDerivativesWaterfall.Derivative { name = "rollAngularVelocity", maxValue = 1, currentValue = (double) - angularVelocity.Z, stabilizatioThreshold = 2f },
                 });
 
 
