@@ -105,7 +105,7 @@ namespace IngameScript
             // derivatives[0] is distance
             // derivatives[1] (first derivative of distance) is velocity
             // derivatives[2] is acceleration
-            public static double cumputeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
+            public static double computeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
             {
                 double normalizedTargetValue = normalize(targetValue, derivatives[0].maxValue, display);
                 normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
@@ -129,34 +129,6 @@ namespace IngameScript
 
                 return normalizedTargetValue;
             }
-
-            //public static double cumputeLastDerivative(double targetValue, List<Derivative> derivatives, Display display = null)
-            //{
-            //    double normalizedTargetValue = targetValue / derivatives[0].maxValue;
-            //    normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
-
-            //    if (derivatives[0].stabilizatioThreshold != 1f)
-            //    {
-            //        throw new Exception("There is no point in setting stabilizatioThreshold for the first derivative. It only makes sense when set for 2nd or 3rd derivatives.");
-            //    }
-
-            //    for (int i = 0; i < derivatives.Count; i++)
-            //    {
-            //        if (display != null) display.log($"{derivatives[i].name} {normalizedTargetValue.ToString("0.000")}={derivatives[i].stabilizatioThreshold.ToString("0.000")}\n");
-
-            //        double stabilizatioThreshold = normalizedTargetValue == 0 ? derivatives[i].stabilizatioThreshold : (1 - derivatives[i].stabilizatioThreshold) * normalizedTargetValue * normalizedTargetValue / Math.Abs(normalizedTargetValue) + derivatives[i].stabilizatioThreshold;
-            //        normalizedTargetValue *= stabilizatioThreshold;
-            //        normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
-
-            //        if (display != null)
-            //            display.log($"d{(normalizedTargetValue * derivatives[i].maxValue).ToString("0.000")} a{derivatives[i].currentValue.ToString("0.000")} s{stabilizatioThreshold.ToString("0.000")} \n");
-
-            //        normalizedTargetValue = normalizedTargetValue - derivatives[i].currentValue / derivatives[i].maxValue;
-            //        normalizedTargetValue = Math.Max(-1, Math.Min(1, normalizedTargetValue));
-            //    }
-
-            //    return normalizedTargetValue;
-            //}
         }
        
         public class RollStabilizer
@@ -181,7 +153,7 @@ namespace IngameScript
                 Vector3D angularVelocity = Vector3D.TransformNormal(controller.GetShipVelocities().AngularVelocity, MatrixD.Transpose(matrix));
                 double roll = (double) (-Math.Atan2(localUp.X, localUp.Y) * 180 / Math.PI);
 
-                double gyroRoll = AutopilotDerivativesWaterfall.cumputeLastDerivative(controller.MoveIndicator.X * 100, new List<AutopilotDerivativesWaterfall.Derivative>
+                double gyroRoll = AutopilotDerivativesWaterfall.computeLastDerivative(controller.MoveIndicator.X * 100, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
                    new AutopilotDerivativesWaterfall.Derivative { name = "velocity", maxValue = 100, currentValue = (double)linearVelocity.X },
                    new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 5, currentValue = roll },

@@ -60,7 +60,7 @@ namespace IngameScript
             double curentAngularVelocity,
             Display display
         ) {
-                return AutopilotDerivativesWaterfall.cumputeLastDerivative(targetVelocity, new List<AutopilotDerivativesWaterfall.Derivative>
+                return AutopilotDerivativesWaterfall.computeLastDerivative(targetVelocity, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
                    new AutopilotDerivativesWaterfall.Derivative { name = "velocity X", maxValue = 100, currentValue = currentVelocity, stabilizatioThreshold = 40 },
                    new AutopilotDerivativesWaterfall.Derivative { name = "rollAngle", maxValue = 40, currentValue = currentAngle, stabilizatioThreshold = 30 },
@@ -110,7 +110,7 @@ namespace IngameScript
         )
         {
             display.log($"currentAngularVelocity {currentAngularVelocity.ToString("0.00")}\n");
-            return AutopilotDerivativesWaterfall.cumputeLastDerivative(targetVelocity, new List<AutopilotDerivativesWaterfall.Derivative>
+            return AutopilotDerivativesWaterfall.computeLastDerivative(targetVelocity, new List<AutopilotDerivativesWaterfall.Derivative>
                 {
                    new AutopilotDerivativesWaterfall.Derivative { name = "velocity X", maxValue = 100, currentValue = currentVelocity, stabilizatioThreshold = 5 },
                    new AutopilotDerivativesWaterfall.Derivative { name = "pitchAngle", maxValue = 50, currentValue = currentAngle, stabilizatioThreshold = 10 },
@@ -163,7 +163,7 @@ namespace IngameScript
 
             display.log($"\npitch {pitch.ToString("0.00")}\n");
 
-            double gyroPitch = computePitchForce_Suffering(
+            double gyroPitch = computePitchForce(
                 -controller.MoveIndicator.Z * 100,
                  -linearVelocity.Z,
                  pitch,
@@ -171,7 +171,7 @@ namespace IngameScript
                  display
             ) * 2;
 
-            double desiredElevationSpeedDelta = AutopilotDerivativesWaterfall.cumputeLastDerivative(controller.MoveIndicator.Y * 100, new List<AutopilotDerivativesWaterfall.Derivative>
+            double desiredElevationSpeedDelta = AutopilotDerivativesWaterfall.computeLastDerivative(controller.MoveIndicator.Y * 100, new List<AutopilotDerivativesWaterfall.Derivative>
             {
                 new AutopilotDerivativesWaterfall.Derivative { name = "velocity Z", maxValue = 50, currentValue = (double)elevationSpeed, stabilizatioThreshold = 1f },
             }) * 10;
